@@ -24,8 +24,7 @@ let promiseGenerator = (task, meta) => {
             then(($) => {
                 getPages = $('.tablepaging tbody tr').children().last().children().attr('title'); 
                 if(getPages !== undefined) {
-                    pages = getPages[getPages.length - 1];
-                    // console.log(pages);
+                    pages = getPages.includes("of") ? getPages.split(" ")[3] : 1;
                     let promoOnCategory = [];
                     for(page = 1; page <= pages; page++) {
                         rp(initScrap(task+page)).
