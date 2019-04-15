@@ -15,8 +15,27 @@ let initScrap = (uri) => {
     }
 };
 
+let eachPagePromise = (task) => {
+    return new Promise((resolve, reject) => {
+        promoOnPage = [];
+        rp(initScrap(task+page)).
+        then(($) => {
+            $('li').each((index, elem) => {
+                let promoObject   = new Object();
+                promoObject.link  = baseUrl+$(elem).children().attr('href');
+                promoObject.title = $(elem).children().children().attr('title');
+                promoObject.image = baseUrl+$(elem).children().children().attr('src');
+                promoOnPage.push(promoObject);
+            });
+            resolve(promoOnPage);
+        })
+        .catch((err) => {
+            reject(err);
+        });
+    })
+}
 
-let promiseGenerator = (task, meta) => {
+let eachCategoryPromise = (task, meta) => {
     return new Promise((resolve, reject) => {
         let pages;
         let getPages;
@@ -27,23 +46,14 @@ let promiseGenerator = (task, meta) => {
                     pages = getPages.includes("of") ? getPages.split(" ")[3] : 1;
                     let promoOnCategory = [];
                     for(page = 1; page <= pages; page++) {
-                        rp(initScrap(task+page)).
-                            then(($) => {
-                                $('li').each((index, elem) => {
-                                    let promoObject   = new Object();
-                                    promoObject.link  = baseUrl+$(elem).children().attr('href');
-                                    promoObject.title = $(elem).children().children().attr('title');
-                                    promoObject.image = baseUrl+$(elem).children().children().attr('src');
-                                    promoOnCategory.push(promoObject);
-                                });
-                                resolve({
-                                    [meta] : promoOnCategory,
-                                });
-                            })
-                            .catch((err) => {
-                                reject(err);
-                            });
+                        promoOnCategory.push(eachPagePromise(task+page));
                     }
+                    Promise.all(promoOnCategory).then((results) => {
+                        concatResult = [].concat(...results);
+                        resolve({
+                            [meta] : concatResult
+                        });
+                    });
                 } else {
                     resolve({
                         [meta] : [{}]
@@ -74,7 +84,7 @@ rp(initScrap(baseUrl+'promolainnya.php'))
         let categoryPromises = [];
         categories.forEach((Category, index) => {
             categoryUrl = baseUrl + 'ajax.promolainnya.php?product=0&subcat='+Category.id+'&page=';
-            categoryPromises.push(promiseGenerator(categoryUrl, Category.name));
+            categoryPromises.push(eachCategoryPromise(categoryUrl, Category.name));
         });
         
         Promise.all(categoryPromises).then((results) => {
