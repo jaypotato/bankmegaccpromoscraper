@@ -17,8 +17,8 @@ let initScrap = (uri) => {
 
 let eachPagePromise = (task) => {
     return new Promise((resolve, reject) => {
-        promoOnPage = [];
-        rp(initScrap(task+page)).
+        let promoOnPage = [];
+        rp(initScrap(task)).
         then(($) => {
             $('li').each((index, elem) => {
                 let promoObject   = new Object();
@@ -32,7 +32,7 @@ let eachPagePromise = (task) => {
         .catch((err) => {
             reject(err);
         });
-    })
+    });
 }
 
 let eachCategoryPromise = (task, meta) => {
@@ -51,7 +51,7 @@ let eachCategoryPromise = (task, meta) => {
                     Promise.all(promoOnCategory).then((results) => {
                         concatResult = [].concat(...results);
                         resolve({
-                            [meta] : concatResult
+                            [meta] : concatResult,
                         });
                     });
                 } else {
@@ -88,8 +88,8 @@ rp(initScrap(baseUrl+'promolainnya.php'))
         });
         
         Promise.all(categoryPromises).then((results) => {
-            // let merged = Object.assign(...results);
-            fs.writeFile("./solution.json", JSON.stringify(results), (err) => {
+            let merged = Object.assign(...results);
+            fs.writeFile("./solution.json", JSON.stringify(merged, null, 4), (err) => {
                 if(err) {
                     console.error(err);
                     return;
