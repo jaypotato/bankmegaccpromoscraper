@@ -23,8 +23,8 @@ eachPromoPromise = (task, meta) => {
             eachPromoObj.title          = $('.titleinside').children().text();
             eachPromoObj.area           = $('.area').text().split(' ').pop().trim();
             eachPromoObj.periode        = $('.periode').text().split(':').pop().trim().replace(/\n\t+/,'');
-            let descImage               = baseUrl+$('.keteranganinside img').attr('src');
-            eachPromoObj.descImage      = descImage.substring(1);
+            let descImage               = $('.keteranganinside img').attr('src');
+            eachPromoObj.descImage      = baseUrl + descImage.substring(1);
             eachPromoObj.link           = task;
             eachPromoObj.previewImg     = meta;
             resolve(eachPromoObj);
