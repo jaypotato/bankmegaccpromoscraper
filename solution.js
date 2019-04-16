@@ -15,19 +15,40 @@ let initScrap = (uri) => {
     }
 };
 
+eachPromoPromise = (task, meta) => {
+    return new Promise((resolve, reject) => {
+        let eachPromoObj = new Object();
+        rp(initScrap(task)).
+        then(($) => {
+            eachPromoObj.title          = $('.titleinside').children().text();
+            eachPromoObj.area           = $('.area').text().split(' ').pop().trim();
+            eachPromoObj.periode        = $('.periode').text().split(':').pop().trim().replace(/\n\t+/,'');
+            let descImage               = baseUrl+$('.keteranganinside img').attr('src');
+            eachPromoObj.descImage      = descImage.substring(1);
+            eachPromoObj.link           = task;
+            eachPromoObj.previewImg     = meta;
+            resolve(eachPromoObj);
+        })
+        .catch((err) => {
+            reject(err);
+        });
+    });
+}
+
 let eachPagePromise = (task) => {
     return new Promise((resolve, reject) => {
-        let promoOnPage = [];
+        let PromoDetail = [];
         rp(initScrap(task)).
         then(($) => {
             $('li').each((index, elem) => {
-                let promoObject   = new Object();
-                promoObject.link  = baseUrl+$(elem).children().attr('href');
-                promoObject.title = $(elem).children().children().attr('title');
-                promoObject.image = baseUrl+$(elem).children().children().attr('src');
-                promoOnPage.push(promoObject);
+                let getDetailPromoLink  = $(elem).children().attr('href')
+                let detailPromoLink     = getDetailPromoLink.includes("http") ? getDetailPromoLink : baseUrl+getDetailPromoLink;
+                let prevImg             = baseUrl+$(elem).children().children().attr('src');
+                PromoDetail.push(eachPromoPromise(detailPromoLink, prevImg));
             });
-            resolve(promoOnPage);
+            Promise.all(PromoDetail).then((results) => {
+                resolve(results);
+            });
         })
         .catch((err) => {
             reject(err);
@@ -102,3 +123,4 @@ rp(initScrap(baseUrl+'promolainnya.php'))
     .catch((err) => {
         console.error(err);
     });
+
